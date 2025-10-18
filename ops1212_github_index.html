@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historical Deed Map</title>
+    <title>Historical Map Overlays</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha26-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
     <style>
@@ -23,90 +23,42 @@
 
 <script>
     // 1. Initialize Map
-    // Centered on the approximate location of the deeds in Alexandria, VA.
     const map = L.map('map').setView([38.820, -77.075], 15);
 
-    // 2. Base Layer (Modern Map)
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    // 2. Base Layer (Using a new, reliable tile provider)
+    const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
     }).addTo(map);
 
-    // 3. Historical Map Overlays from your Maps.csv
+    // 3. Historical Map Overlays (All 19)
     const overlayMaps = {
         "1853 Map of Alexandria": L.tileLayer('https://warper.wfmlabs.org/maps/tile/62024/{z}/{x}/{y}.png', { attribution: '1853 Map of Alexandria | Map Warper' }),
         "1862 Defenses of Washington": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58950/{z}/{x}/{y}.png', { attribution: '1862 Defenses of Washington | Map Warper' }),
         "1865 Military Map": L.tileLayer('https://warper.wfmlabs.org/maps/tile/54817/{z}/{x}/{y}.png', { attribution: '1865 Military Map | Map Warper' }),
+        "1878 Hopkins Map of Washington": L.tileLayer('https://warper.wfmlabs.org/maps/tile/39601/{z}/{x}/{y}.png', { attribution: '1878 Hopkins Map of Washington | Map Warper' }),
         "1879 Atlas of Alexandria": L.tileLayer('https://warper.wfmlabs.org/maps/tile/39598/{z}/{x}/{y}.png', { attribution: '1879 Atlas of Alexandria | Map Warper' }),
         "1885 Hopkins City Atlas": L.tileLayer('https://warper.wfmlabs.org/maps/tile/61845/{z}/{x}/{y}.png', { attribution: '1885 Hopkins City Atlas | Map Warper' }),
         "1892 Army Map Service": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58951/{z}/{x}/{y}.png', { attribution: '1892 Army Map Service | Map Warper' }),
+        "1894 US Coast Survey": L.tileLayer('https://warper.wfmlabs.org/maps/tile/4397/{z}/{x}/{y}.png', { attribution: '1894 US Coast Survey | Map Warper' }),
         "1900 Landowner Map": L.tileLayer('https://warper.wfmlabs.org/maps/tile/4747/{z}/{x}/{y}.png', { attribution: '1900 Landowner Map | Map Warper' }),
         "1907 Baist Real Estate Atlas": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58963/{z}/{x}/{y}.png', { attribution: '1907 Baist Real Estate Atlas | Map Warper' }),
+        "1917 U.S. Geo Survey": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58952/{z}/{x}/{y}.png', { attribution: '1917 U.S. Geo Survey | Map Warper' }),
         "1921 Baist Real Estate Atlas": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58962/{z}/{x}/{y}.png', { attribution: '1921 Baist Real Estate Atlas | Map Warper' }),
+        "1928 Dept of Interior": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58949/{z}/{x}/{y}.png', { attribution: '1928 Dept of Interior | Map Warper' }),
+        "1937 Shell Oil Map": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58954/{z}/{x}/{y}.png', { attribution: '1937 Shell Oil Map | Map Warper' }),
         "1943 Army Map Service": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58948/{z}/{x}/{y}.png', { attribution: '1943 Army Map Service | Map Warper' }),
+        "1944 U.S. Geo Survey": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58953/{z}/{x}/{y}.png', { attribution: '1944 U.S. Geo Survey | Map Warper' }),
         "1945 Zoning Map": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58961/{z}/{x}/{y}.png', { attribution: '1945 Zoning Map | Map Warper' }),
-        "1949 Zoning Map": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58957/{z}/{x}/{y}.png', { attribution: '1949 Zoning Map | Map Warper' })
+        "1949 Zoning Map": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58957/{z}/{x}/{y}.png', { attribution: '1949 Zoning Map | Map Warper' }),
+        "1960 Master Plan of Highways": L.tileLayer('https://warper.wfmlabs.org/maps/tile/58956/{z}/{x}/{y}.png', { attribution: '1960 Master Plan of Highways | Map Warper' })
     };
 
-    // 4. Deed Markers from your Deeds.csv
-    const deedData = [
-        {"lat":38.82025,"lon":-77.07548,"date":"10-Sep-1851","seller":"Wm. Veitch","buyer":"John B. Daingerfield"},
-        {"lat":38.81971,"lon":-77.07635,"date":"3-Mar-1854","seller":"John B. Daingerfield","buyer":"Lewis McKenzie"},
-        {"lat":38.81987,"lon":-77.0763,"date":"12-May-1854","seller":"John B. Daingerfield","buyer":"Wm. H. May"},
-        {"lat":38.82029,"lon":-77.07548,"date":"14-Apr-1855","seller":"John B. Daingerfield","buyer":"Geo. W. D. Ramsay"},
-        {"lat":38.82046,"lon":-77.07545,"date":"28-Apr-1855","seller":"John B. Daingerfield","buyer":"James Green"},
-        {"lat":38.81881,"lon":-77.07432,"date":"15-Sep-1880","seller":"Chas. C. Smoot","buyer":"Geo. W. Ramsay"},
-        {"lat":38.82033,"lon":-77.07452,"date":"2-Mar-1886","seller":"James Green","buyer":"Jno. W. Dempsey"},
-        {"lat":38.82061,"lon":-77.07532,"date":"1-Sep-1891","seller":"James Green","buyer":"Jno. W. Dempsey"},
-        {"lat":38.81919,"lon":-77.07342,"date":"28-Feb-1907","seller":"Chas. C. Smoot","buyer":"W. S. Emmerson"},
-        {"lat":38.82033,"lon":-77.07452,"date":"20-Feb-1920","seller":"Jno. W. Dempsey","buyer":"Jesse W. Slaymaker"},
-        {"lat":38.8203,"lon":-77.07455,"date":"14-Jun-1920","seller":"Jesse W. Slaymaker","buyer":"Thomas J. Kremer"},
-        {"lat":38.82048,"lon":-77.07519,"date":"16-Jun-1920","seller":"James Green","buyer":"C. W. S. Turner"},
-        {"lat":38.82061,"lon":-77.07532,"date":"12-Aug-1920","seller":"Jno. W. Dempsey","buyer":"Ethel M. Dempsey"},
-        {"lat":38.8205,"lon":-77.07518,"date":"2-Mar-1921","seller":"C. W. S. Turner","buyer":"Jno. W. Dempsey"},
-        {"lat":38.82061,"lon":-77.07532,"date":"11-Nov-1921","seller":"Ethel M. Dempsey","buyer":"C. W. S. Turner"},
-        {"lat":38.82048,"lon":-77.07519,"date":"15-Feb-1922","seller":"Jno. W. Dempsey","buyer":"C. W. S. Turner"},
-        {"lat":38.82061,"lon":-77.07532,"date":"15-Mar-1922","seller":"C. W. S. Turner","buyer":"Herbert H. Sams"},
-        {"lat":38.82048,"lon":-77.07519,"date":"20-Apr-1922","seller":"C. W. S. Turner","buyer":"Herbert H. Sams"},
-        {"lat":38.8203,"lon":-77.07455,"date":"1-Nov-1922","seller":"Thomas J. Kremer","buyer":"Chas. T. Nicholson"},
-        {"lat":38.82033,"lon":-77.07452,"date":"20-Nov-1922","seller":"Chas. T. Nicholson","buyer":"W. A. Smoot"},
-        {"lat":38.8203,"lon":-77.07455,"date":"1-Dec-1922","seller":"W. A. Smoot","buyer":"T. J. Kremer"},
-        {"lat":38.82061,"lon":-77.07532,"date":"12-Jul-1923","seller":"Herbert H. Sams","buyer":"John E. Kenna"},
-        {"lat":38.82048,"lon":-77.07519,"date":"1-Aug-1923","seller":"Herbert H. Sams","buyer":"John E. Kenna"},
-        {"lat":38.82033,"lon":-77.07452,"date":"15-Oct-1923","seller":"T. J. Kremer","buyer":"C. A. Fellows"},
-        {"lat":38.8203,"lon":-77.07455,"date":"1-Nov-1923","seller":"C. A. Fellows","buyer":"W. A. Smoot"},
-        {"lat":38.82061,"lon":-77.07532,"date":"15-Dec-1923","seller":"John E. Kenna","buyer":"W. A. Smoot"},
-        {"lat":38.82048,"lon":-77.07519,"date":"1-Jan-1924","seller":"John E. Kenna","buyer":"W. A. Smoot"},
-        {"lat":38.8203,"lon":-77.07455,"date":"15-Jan-1924","seller":"W. A. Smoot","buyer":"C. A. Fellows"},
-        {"lat":38.82033,"lon":-77.07452,"date":"1-Feb-1924","seller":"C. A. Fellows","buyer":"T. J. Kremer"},
-        {"lat":38.82061,"lon":-77.07532,"date":"15-Feb-1924","seller":"W. A. Smoot","buyer":"John E. Kenna"},
-        {"lat":38.82048,"lon":-77.07519,"date":"1-Mar-1924","seller":"W. A. Smoot","buyer":"John E. Kenna"},
-        {"lat":38.8203,"lon":-77.07455,"date":"15-Mar-1924","seller":"T. J. Kremer","buyer":"W. A. Smoot"},
-        {"lat":38.82033,"lon":-77.07452,"date":"1-Apr-1924","seller":"W. A. Smoot","buyer":"C. A. Fellows"}
-    ];
-    
-    // Create markers and add them to the map
-    const deedMarkers = L.layerGroup();
-    deedData.forEach(deed => {
-        const marker = L.marker([deed.lat, deed.lon]);
-        marker.bindPopup(`
-            <b>Date:</b> ${deed.date}<br>
-            <b>Seller:</b> ${deed.seller}<br>
-            <b>Buyer:</b> ${deed.buyer}
-        `);
-        deedMarkers.addLayer(marker);
-    });
-
-    // Add the deed markers to the map by default
-    deedMarkers.addTo(map);
-
-    // 5. Layer Control
+    // 4. Layer Control
     const baseMaps = {
-        "OpenStreetMap": osm
+        "Modern Map": carto
     };
-
-    // Add the deed markers as a selectable layer
-    overlayMaps["Deed Locations"] = deedMarkers;
 
     L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
     
